@@ -38,6 +38,27 @@
 #include <openssl/x509v3.h>
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
+#include <arpa/inet.h>
+
+static int _is_ip_address(const char *host)
+{
+	struct in_addr in4;
+	struct in6_addr in6;
+
+	if (host == NULL || host[0] == '\0') {
+		return 0;
+	}
+
+	if (inet_pton(AF_INET, host, &in4) == 1) {
+		return 1;
+	}
+
+	if (inet_pton(AF_INET6, host, &in6) == 1) {
+		return 1;
+	}
+
+	return 0;
+}
 
 static ssize_t _ssl_read_ext(struct dns_server_info *server, SSL *ssl, void *buff, int num)
 {
@@ -456,8 +477,27 @@ int _dns_client_create_socket_tls(struct dns_server_info *server_info, const cha
 	}
 
 	SSL_set_mode(ssl, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER | SSL_MODE_ENABLE_PARTIAL_WRITE);
-	if (hostname && hostname[0] != 0) {
-		SSL_set_tlsext_host_name(ssl, hostname);
+	{
+		const char *sni_host = NULL;
+		char *tls_host_verify = _dns_client_server_get_tls_host_verify(server_info);
+
+		/* Prefer configured original domain for SNI (tls_host_verify).
+		 * If not configured, use provided hostname if it's not an IP address.
+		 */
+		if (tls_host_verify && tls_host_verify[0] != '\0') {
+			sni_host = tls_host_verify;
+		} else if (hostname && hostname[0] != '\0' && !_is_ip_address(hostname)) {
+			sni_host = hostname;
+		}
+
+		if (sni_host) {
+			if (SSL_set_tlsext_host_name(ssl, sni_host) == 0) {
+				tlog(TLOG_ERROR, "SSL_set_tlsext_host_name failed for SNI '%s'", sni_host);
+				goto errout;
+			} else {
+				tlog(TLOG_DEBUG, "SNI set to '%s' for server %s", sni_host, server_info->ip);
+			}
+		}
 	}
 
 	if (alpn && alpn[0] != 0) {
