@@ -624,7 +624,7 @@ errout:
 	return -1;
 }
 
-static int _smartdns_init(void)
+static int _smartdns_init(int is_daemon, int is_foreground)
 {
 	int ret = 0;
 	char str_ver[256] = {0};
@@ -699,6 +699,22 @@ static int _smartdns_init(void)
 		tlog(TLOG_ERROR, "init plugin failed.");
 		goto errout;
 	}
+
+#ifdef MOBILE_PLATFORM
+	// 移动平台特定的初始化
+	tlog(TLOG_NOTICE, "Running on mobile platform, applying power saving optimizations");
+	
+	// 设置较低的资源使用限制
+	struct rlimit rl;
+	rl.rlim_cur = 1024;  // 减少打开文件描述符的数量
+	rl.rlim_max = 1024;
+	setrlimit(RLIMIT_NOFILE, &rl);
+	
+	// 调整堆栈大小以节省内存
+	rl.rlim_cur = 2 * 1024 * 1024;  // 2MB堆栈
+	rl.rlim_max = 2 * 1024 * 1024;
+	setrlimit(RLIMIT_STACK, &rl);
+#endif
 
 	return 0;
 errout:

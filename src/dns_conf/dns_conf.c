@@ -68,7 +68,86 @@ static struct config_enum_list dns_conf_response_mode_enum[] = {
 	{"fastest-response", DNS_RESPONSE_MODE_FASTEST_RESPONSE},
 	{NULL, 0}};
 
-struct dns_config dns_conf;
+struct dns_config dns_conf = {
+	.local_ttl = 600,
+	.serve_expired = 1,
+	.serve_expired_ttl = 86400,
+	.serve_expired_reply_ttl = 5,
+	.cachesize = -1,  // auto
+	.cache_max_memsize = -1, // auto
+	.cache_persist = 2, // auto
+	.cache_checkpoint_time = 86400,
+	.ip_blacklist_penalty = 600,
+	.tcp_idle_time = 300,
+	.speed_check_mode_wait_timeout = 5,
+	.max_reply_ip_num = 8,
+	.response_mode = DNS_RESPONSE_MODE_FASTEST_IP,
+	.audit_enable = 0,
+	.audit_file_rotate = 1,
+	.audit_file_num = 3,
+	.audit_file_size = 10,
+	.audit_ignore_case = 1,
+	.audit_ignore_whitelist = 0,
+	.audit_nftset_format = 0,
+	.has_tcp_check = 0,
+	.has_icmp_check = 0,
+	.has_tcp_syn_check = 0,
+	.forward_server_update = 0,
+	.forward_server_update_src = 0,
+	.forward_server_update_extra = 0,
+	.forward_server_update_ecs = 0,
+	.forward_server_update_edns = 0,
+	.forward_server_update_padding = 0,
+	.forward_server_update_cookie = 0,
+	.forward_server_update_other = 0,
+	.forward_server_update_ttl = 0,
+	.forward_server_update_rtt = 0,
+	.forward_server_update_weight = 0,
+	.forward_server_update_fail = 0,
+	.forward_server_update_success = 0,
+	.forward_server_update_all = 0,
+	.forward_server_update_any = 0,
+	.forward_server_update_first = 0,
+	.forward_server_update_last = 0,
+	.forward_server_update_random = 0,
+	.forward_server_update_round_robin = 0,
+	.forward_server_update_least_conn = 0,
+	.forward_server_update_least_time = 0,
+	.forward_server_update_hash = 0,
+	.forward_server_update_consistent_hash = 0,
+	.forward_server_update_weighted_round_robin = 0,
+	.forward_server_update_weighted_least_conn = 0,
+	.forward_server_update_weighted_least_time = 0,
+	.forward_server_update_weighted_hash = 0,
+	.forward_server_update_weighted_consistent_hash = 0,
+	.forward_server_update_weighted_random = 0,
+	.forward_server_update_weighted_first = 0,
+	.forward_server_update_weighted_last = 0,
+	.forward_server_update_weighted_all = 0,
+	.forward_server_update_weighted_any = 0,
+	.forward_server_update_weighted_round_robin = 0,
+	.forward_server_update_weighted_least_conn = 0,
+	.forward_server_update_weighted_least_time = 0,
+	.forward_server_update_weighted_hash = 0,
+	.forward_server_update_weighted_consistent_hash = 0,
+	.forward_server_update_weighted_random = 0,
+	.forward_server_update_weighted_first = 0,
+	.forward_server_update_weighted_last = 0,
+	.forward_server_update_weighted_all = 0,
+	.forward_server_update_weighted_any = 0,
+	.forward_server_prefetch = 1,
+#ifdef MOBILE_PLATFORM
+	// 移动平台默认值
+	.dns_prefetch = 0,                    // 禁用预取以节省流量
+	.dns_serve_expired = 1,               // 启用过期服务以提高响应速度
+	.dns_serve_expired_prefetch_time = 3600, // 较短的过期预取时间
+	.dualstack_ip_selection = 0,          // 禁用双栈选择以节省资源
+	.dualstack_ip_allow_force_aaaa = 0,   // 禁用强制AAAA
+	.dualstack_ip_selection_threshold = 500, // 设置较高的阈值
+	.speed_check_mode_valid = 0,          // 默认不启用速度检查
+	.speed_check_mode_count = 1,          // 限制速度检查次数
+#endif
+};
 
 struct config_enum_list *response_mode_list(void)
 {
