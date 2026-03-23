@@ -1,0 +1,44 @@
+name: Manual Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Build platform (e.g., luci, debian, openwrt, linux, etc.)'
+        required: true
+        default: 'linux'
+      arch:
+        description: 'Target architecture (e.g., x86-64, arm64, armv8, etc.)'
+        required: true
+        default: 'arm64'
+      with_ui:
+        description: 'Include smartdns-ui plugin (yes/no)'
+        required: false
+        default: 'no'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up build environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential gcc make wget unzip
+
+    - name: Build smartdns
+      run: |
+        chmod +x package/build-pkg.sh
+        ./package/build-pkg.sh \
+          --platform ${{ github.event.inputs.platform }} \
+          --arch ${{ github.event.inputs.arch }} \
+          $([[ "${{ github.event.inputs.with_ui }}" == "yes" ]] && echo "--with-ui")
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: smartdns-${{ github.event.inputs.platform }}-${{ github.event.inputs.arch }}
+        path: target/
