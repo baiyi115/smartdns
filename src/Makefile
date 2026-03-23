@@ -84,38 +84,3 @@ ifeq ($(USE_ATOMIC), 0)
  override CFLAGS += -DUSE_ATOMIC
  override LDFLAGS += -latomic 
 endif
-
-override LDFLAGS += $(EXTRA_LDFLAGS)
-
-.PHONY: all clean
-
-all: $(BIN)
-
-%_test.o: %.c
-	$(CC) -DTEST $(CFLAGS) -c $< -o $@
-
-$(BIN) : $(MAIN_OBJ) $(SMARTDNS_LIB)
-	$(CC) $^ -o $@ $(LDFLAGS)
-
-$(SMARTDNS_TEST_LIB): $(TEST_OBJS)
-	$(AR) rcs $@ $^
-
-$(SMARTDNS_LIB): $(OBJS)
-	$(AR) rcs $@ $^
-
-clang-tidy-parallel:
-	@echo "Running clang-tidy with $(shell nproc) parallel jobs..."
-	@printf '%s\n' $(LINT_OBJS:.o=.c) | xargs -P $(shell nproc) -I {} clang-tidy {} -- $(CFLAGS)
-
-clang-tidy:
-	clang-tidy -p=. $(LINT_OBJS:.o=.c) -- $(CFLAGS)
-
-clean:
-	$(RM) $(OBJS) $(BIN) $(SMARTDNS_LIB) $(MAIN_OBJ) $(SMARTDNS_TEST_LIB) $(TEST_OBJS)
-
-# lint specific files
-# make lint-files FILES="dns.c proxy.c"
-lint-files:
-	@echo "Specify FILES variable to lint specific files, e.g., make lint-files FILES='src/dns.c src/proxy.c'"
-	clang-tidy -p=. $(FILES) -- $(CFLAGS)
-

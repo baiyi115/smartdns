@@ -71,3 +71,18 @@ install: SMARTDNS_BIN
 	install -v -m 0644 -D -t $(DESTDIR)$(SYSTEMDSYSTEMUNITDIR) systemd/smartdns.service
 	$(call PLUGINS_TARGETS, install)
 
+# 添加移动平台编译支持
+.PHONY: android arm64-v8a armeabi-v7a
+android: arm64-v8a
+
+arm64-v8a:
+	@echo "Building for Android ARM64 (mobile platform)..."
+	$(MAKE) -C src CFLAGS_EXTRA="-DMOBILE_PLATFORM -DANDROID_PLATFORM" LDFLAGS_EXTRA="" TARGET_ARCH="-arch arm64" CC="$(CC)"
+
+armeabi-v7a:
+	@echo "Building for Android ARM32 (mobile platform)..."
+	$(MAKE) -C src CFLAGS_EXTRA="-DMOBILE_PLATFORM -DANDROID_PLATFORM" LDFLAGS_EXTRA="" TARGET_ARCH="-arch arm" CC="$(CC)"
+
+mobile:
+	@echo "Building for mobile platform with optimizations..."
+	$(MAKE) -C src CFLAGS_EXTRA="-DMOBILE_PLATFORM -Os -ffunction-sections -fdata-sections" LDFLAGS_EXTRA="-Wl,--gc-sections" CC="$(CC)"
