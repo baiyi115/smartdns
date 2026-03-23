@@ -38,7 +38,7 @@ jobs:
           $([[ "${{ github.event.inputs.with_ui }}" == "yes" ]] && echo "--with-ui")
 
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: smartdns-${{ github.event.inputs.platform }}-${{ github.event.inputs.arch }}
         path: target/
